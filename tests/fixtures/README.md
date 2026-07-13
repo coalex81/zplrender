@@ -6,6 +6,8 @@ refer to public landmarks rather than residences.
 - `zpl/shipping_label.zpl`: editable native ZPL used for parser and visual
   tests, including a project-owned geometric parcel mark with no third-party
   logo artwork.
+- `zpl/field_blocks.zpl`: synthetic alignment, wrapping, hanging-indent, and
+  justification cases for `^FB` compatibility.
 - `archives/shopee_shipping_labels.zip`: seven-label raster archive matching the
   shape of the original marketplace download.
 

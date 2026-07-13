@@ -15,6 +15,8 @@ LABEL = PROJECT_ROOT / "tests" / "fixtures" / "zpl" / "shipping_label.zpl"
 REFERENCE = PROJECT_ROOT / "benchmarks" / "reference" / "shipping_label.png"
 ARCHIVE = PROJECT_ROOT / "tests" / "fixtures" / "archives" / "shopee_shipping_labels.zip"
 ARCHIVE_REFERENCES = PROJECT_ROOT / "benchmarks" / "reference" / "shopee_shipping_labels"
+FIELD_BLOCKS = PROJECT_ROOT / "tests" / "fixtures" / "zpl" / "field_blocks.zpl"
+FIELD_BLOCKS_REFERENCE = PROJECT_ROOT / "benchmarks" / "reference" / "field_blocks.png"
 
 
 def _shipping_label_source() -> str:
@@ -164,3 +166,12 @@ def test_visual_regions_preserve_barcode_origin_improvement() -> None:
     assert differences["barcode"] < 1.1
     assert differences["routing"] > differences["recipient"]
     assert differences["qr"] < 5.0
+
+
+def test_field_block_visual_difference_stays_below_baseline() -> None:
+    actual = render(FIELD_BLOCKS.read_text(encoding="utf-8"), strict=True).pages[0].convert("L")
+    with Image.open(FIELD_BLOCKS_REFERENCE) as reference_image:
+        reference = reference_image.convert("L")
+
+    assert actual.size == reference.size == (812, 1218)
+    assert _difference_percentage(actual, reference) < 3.7

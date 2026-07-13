@@ -75,6 +75,11 @@ does not complete the broader Phase 1 research checklist.
   is calibrated to 103% and `^A0` width scales independently. This reduced the
   sanitized benchmark from 7.3394% to 7.2599%; the substitute is intentionally
   not presented as identical to Zebra font 0.
+- `^FB` reduces the available wrap width by the hanging indent on continuation
+  lines and expands inter-word spacing on non-final justified lines. A dedicated
+  synthetic Labelary fixture covers left, center, right, wrapped, indented, and
+  justified blocks; these corrections reduced its visual difference from
+  4.0978% to 3.5774%.
 - The fixture's `^BC` data begins with `>:` and is encoded explicitly from Code
   128 Start B rather than delegated to a library's automatic subset choice.
 - The fixture's restored Labelary reference decodes as Model 2, five-dot

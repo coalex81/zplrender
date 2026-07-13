@@ -20,7 +20,7 @@ Status values are `planned`, `partial`, `implemented`, and `verified`.
 | `^A0` | partial | Yes | Registry-backed font 0, normal orientation, independent height/width dimensions |
 | `^FD` | implemented | Yes | Creates decoded text fields |
 | `^FH` | implemented | Yes | Configurable field-local hexadecimal indicator |
-| `^FB` | partial | Yes | Width, line limit, spacing, left/center/right alignment, indent |
+| `^FB` | partial | Yes | Width, line limit, spacing, left/center/right/justified alignment, hanging indent |
 | `^GB` | implemented | Yes | Boxes, rounded outlines, and zero-width/height lines |
 | `^FR` | partial | Yes | Reversed text, raster, and box fields |
 | `^BY` | partial | Yes | Module width and default barcode height |

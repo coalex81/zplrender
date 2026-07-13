@@ -19,6 +19,14 @@ Regenerate the reference only after intentionally changing the fixture:
 python benchmarks/generate_reference.py
 ```
 
+The same generator maintains the synthetic field-block reference:
+
+```bash
+python benchmarks/generate_reference.py \
+  --source tests/fixtures/zpl/field_blocks.zpl \
+  --output benchmarks/reference/field_blocks.png
+```
+
 Reference generation sends the sanitized ZPL to the external Labelary API and
 therefore requires network access. Private or production ZPL must never be used
 as benchmark input.

@@ -19,9 +19,7 @@ from zplrender.fonts import DEFAULT_FONT_REGISTRY
 from zplrender.renderers.base import RenderOptions
 
 
-def render_document(
-    document: ParsedDocument, options: RenderOptions
-) -> tuple[Image.Image, ...]:
+def render_document(document: ParsedDocument, options: RenderOptions) -> tuple[Image.Image, ...]:
     """Render all printable pages to one-bit Pillow images."""
     return tuple(render_page(page, options) for page in document.pages)
 
@@ -70,6 +68,7 @@ def _draw_text(canvas: Image.Image, element: TextElement) -> None:
 
     for index, line in enumerate(lines):
         x = element.x
+        line_width = element.block.width if element.block is not None else 0
         if element.block is not None:
             text_width = _text_width(line, font, horizontal_scale)
             block_x = element.x
@@ -81,19 +80,87 @@ def _draw_text(canvas: Image.Image, element: TextElement) -> None:
                 if black_run is not None:
                     block_x, run_end = black_run
                     block_width = run_end - block_x
+            indent = element.block.hanging_indent if index > 0 else 0
+            line_width = max(0, block_width - indent)
+            line_x = block_x + min(indent, block_width)
             if element.block.alignment == "C":
-                x = block_x + max(0, (block_width - text_width) // 2)
+                x = line_x + max(0, (line_width - text_width) // 2)
             elif element.block.alignment == "R":
-                x = block_x + max(0, block_width - text_width)
-            if index > 0:
-                x += min(element.block.hanging_indent, block_width)
+                x = line_x + max(0, line_width - text_width)
+            else:
+                x = line_x
         position = (x, element.y + index * line_height)
-        if element.reverse:
-            _invert_text(canvas, position, line, font, horizontal_scale)
-        elif horizontal_scale != 1:
-            _draw_scaled_text(canvas, position, line, font, horizontal_scale, reverse=False)
+        if (
+            element.block is not None
+            and element.block.alignment == "J"
+            and index < len(lines) - 1
+            and " " in line
+        ):
+            _draw_justified_text(
+                canvas,
+                position,
+                line,
+                font,
+                horizontal_scale,
+                line_width,
+                reverse=element.reverse,
+            )
         else:
-            draw.text(position, line, font=font, fill=0, spacing=0)
+            _draw_text_at(
+                canvas,
+                draw,
+                position,
+                line,
+                font,
+                horizontal_scale,
+                reverse=element.reverse,
+            )
+
+
+def _draw_text_at(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    position: tuple[int, int],
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    horizontal_scale: float,
+    *,
+    reverse: bool,
+) -> None:
+    if reverse:
+        _invert_text(canvas, position, text, font, horizontal_scale)
+    elif horizontal_scale != 1:
+        _draw_scaled_text(canvas, position, text, font, horizontal_scale, reverse=False)
+    else:
+        draw.text(position, text, font=font, fill=0, spacing=0)
+
+
+def _draw_justified_text(
+    canvas: Image.Image,
+    position: tuple[int, int],
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    horizontal_scale: float,
+    width: int,
+    *,
+    reverse: bool,
+) -> None:
+    words = text.split()
+    word_widths = [_text_width(word, font, horizontal_scale) for word in words]
+    gap = max(0.0, (width - sum(word_widths)) / (len(words) - 1))
+    draw = ImageDraw.Draw(canvas)
+    x = float(position[0])
+    for word, word_width in zip(words, word_widths):
+        _draw_text_at(
+            canvas,
+            draw,
+            (round(x), position[1]),
+            word,
+            font,
+            horizontal_scale,
+            reverse=reverse,
+        )
+        x += word_width + gap
 
 
 def _invert_text(
@@ -177,7 +244,9 @@ def _layout_lines(
     current = words[0]
     for word in words[1:]:
         candidate = f"{current} {word}"
-        if _text_width(candidate, font, horizontal_scale) <= block.width:
+        indent = block.hanging_indent if lines else 0
+        available_width = max(1, block.width - indent)
+        if _text_width(candidate, font, horizontal_scale) <= available_width:
             current = candidate
         else:
             lines.append(current)
