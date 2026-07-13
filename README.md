@@ -10,9 +10,10 @@ field blocks, boxes, reverse fields, inline `^GF` graphics, Code 128, and QR
 commands exercised by the included sanitized shipping-label fixture.
 
 Compatibility is deliberately partial. See `docs/supported-commands.md` for
-command-level status. Liberation Sans Narrow Bold is the preferred substitute
-for Zebra font 0, with DejaVu fallbacks, so text metrics and line breaks can
-still differ from a real printer.
+command-level status. A font registry uses calibrated Liberation Sans Narrow
+Bold as the preferred substitute for Zebra font 0, with DejaVu fallbacks and
+independent character-width scaling. Text metrics and line breaks can still
+differ from a real printer.
 
 The project is independent and is not affiliated with Zebra Technologies.
 Zebra and ZPL are trademarks of their respective owners.

@@ -105,9 +105,9 @@ interfaces. A small Code 128 and QR dependency may be selected after comparing
 its module widths and quiet zones with the reference PDFs; Zebra-specific data
 prefixes and dimensions remain package logic rather than library assumptions.
 
-DejaVu Sans is the initial substitute for Zebra font 0. Font lookup must be
-configurable, and metric differences must be documented. No proprietary fonts
-may be bundled.
+Liberation Sans Narrow Bold is the preferred substitute for Zebra font 0, with
+DejaVu fallbacks behind a font registry. Metric differences are documented and
+no proprietary fonts are bundled.
 
 ZIP and RAR traversal shown in the legacy experiments is not part of the core
 renderer. The core API consumes ZPL bytes or text. A later input layer may add

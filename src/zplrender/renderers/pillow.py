@@ -15,6 +15,7 @@ from zplrender.elements import (
     RasterGraphic,
     TextElement,
 )
+from zplrender.fonts import DEFAULT_FONT_REGISTRY
 from zplrender.renderers.base import RenderOptions
 
 
@@ -61,15 +62,16 @@ def _graphic_to_image(graphic: RasterGraphic) -> Image.Image:
 
 
 def _draw_text(canvas: Image.Image, element: TextElement) -> None:
-    font = _load_font(element.height)
-    lines = _layout_lines(element.text, font, element.block)
+    font = DEFAULT_FONT_REGISTRY.load(element.font, element.height)
+    horizontal_scale = element.width / element.height
+    lines = _layout_lines(element.text, font, element.block, horizontal_scale)
     draw = ImageDraw.Draw(canvas)
     line_height = element.height + (element.block.line_spacing if element.block else 0)
 
     for index, line in enumerate(lines):
         x = element.x
         if element.block is not None:
-            text_width = _text_width(line, font)
+            text_width = _text_width(line, font, horizontal_scale)
             block_x = element.x
             block_width = element.block.width
             if element.reverse:
@@ -87,22 +89,11 @@ def _draw_text(canvas: Image.Image, element: TextElement) -> None:
                 x += min(element.block.hanging_indent, block_width)
         position = (x, element.y + index * line_height)
         if element.reverse:
-            _invert_text(canvas, position, line, font)
+            _invert_text(canvas, position, line, font, horizontal_scale)
+        elif horizontal_scale != 1:
+            _draw_scaled_text(canvas, position, line, font, horizontal_scale, reverse=False)
         else:
             draw.text(position, line, font=font, fill=0, spacing=0)
-
-
-def _load_font(height: int) -> ImageFont.FreeTypeFont:
-    for name in (
-        "LiberationSansNarrow-Bold.ttf",
-        "DejaVuSans-Bold.ttf",
-        "DejaVuSans.ttf",
-    ):
-        try:
-            return ImageFont.truetype(name, size=height)
-        except OSError:
-            continue
-    raise OSError("No supported open-source font substitute was found")
 
 
 def _invert_text(
@@ -110,13 +101,48 @@ def _invert_text(
     position: tuple[int, int],
     text: str,
     font: ImageFont.FreeTypeFont,
+    horizontal_scale: float,
 ) -> None:
+    if horizontal_scale != 1:
+        _draw_scaled_text(canvas, position, text, font, horizontal_scale, reverse=True)
+        return
     mask = Image.new("L", canvas.size, color=0)
     ImageDraw.Draw(mask).text(position, text, font=font, fill=255, spacing=0)
     grayscale = canvas.convert("L")
     inverted = ImageOps.invert(grayscale)
     grayscale.paste(inverted, (0, 0), mask)
     canvas.paste(grayscale.convert("1"))
+
+
+def _draw_scaled_text(
+    canvas: Image.Image,
+    position: tuple[int, int],
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    horizontal_scale: float,
+    *,
+    reverse: bool,
+) -> None:
+    left, _top, right, bottom = font.getbbox(text)
+    local_left = min(0, left)
+    mask = Image.new(
+        "L",
+        (max(1, round(right - local_left)), max(1, round(bottom))),
+        color=0,
+    )
+    ImageDraw.Draw(mask).text((-local_left, 0), text, font=font, fill=255, spacing=0)
+    mask = mask.resize(
+        (max(1, round(mask.width * horizontal_scale)), mask.height),
+        resample=Image.Resampling.NEAREST,
+    )
+    x = position[0] + round(local_left * horizontal_scale)
+    if reverse:
+        target = canvas.crop((x, position[1], x + mask.width, position[1] + mask.height))
+        inverted = ImageOps.invert(target.convert("L"))
+        canvas.paste(inverted.convert("1"), (x, position[1]), mask)
+    else:
+        ink = Image.new("1", mask.size, color=0)
+        canvas.paste(ink, (x, position[1]), mask)
 
 
 def _contiguous_black_run(canvas: Image.Image, x: int, y: int) -> tuple[int, int] | None:
@@ -135,7 +161,10 @@ def _contiguous_black_run(canvas: Image.Image, x: int, y: int) -> tuple[int, int
 
 
 def _layout_lines(
-    text: str, font: ImageFont.FreeTypeFont, block: FieldBlock | None
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    block: FieldBlock | None,
+    horizontal_scale: float,
 ) -> list[str]:
     if block is None:
         return [text]
@@ -148,7 +177,7 @@ def _layout_lines(
     current = words[0]
     for word in words[1:]:
         candidate = f"{current} {word}"
-        if _text_width(candidate, font) <= block.width:
+        if _text_width(candidate, font, horizontal_scale) <= block.width:
             current = candidate
         else:
             lines.append(current)
@@ -159,9 +188,9 @@ def _layout_lines(
     return lines[: block.max_lines]
 
 
-def _text_width(text: str, font: ImageFont.FreeTypeFont) -> int:
+def _text_width(text: str, font: ImageFont.FreeTypeFont, horizontal_scale: float) -> int:
     left, _top, right, _bottom = font.getbbox(text)
-    return round(right - left)
+    return round((right - left) * horizontal_scale)
 
 
 def _draw_box(canvas: Image.Image, element: BoxElement) -> None:

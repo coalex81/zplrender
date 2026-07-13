@@ -70,9 +70,11 @@ does not complete the broader Phase 1 research checklist.
   from 12.0957% to 7.3394% thresholded pixel difference.
 
 - `^CI28` fields are decoded as UTF-8 after field-local `^FH` byte expansion.
-- Font 0 prefers configurable-system Liberation Sans Narrow Bold, with DejaVu
-  Sans Bold and DejaVu Sans fallbacks. Their metrics are intentionally not
-  presented as identical to Zebra font 0.
+- Font 0 resolves through a registry that prefers system Liberation Sans Narrow
+  Bold, with DejaVu Sans Bold and DejaVu Sans fallbacks. The Liberation height
+  is calibrated to 103% and `^A0` width scales independently. This reduced the
+  sanitized benchmark from 7.3394% to 7.2599%; the substitute is intentionally
+  not presented as identical to Zebra font 0.
 - The fixture's `^BC` data begins with `>:` and is encoded explicitly from Code
   128 Start B rather than delegated to a library's automatic subset choice.
 - The fixture's restored Labelary reference decodes as Model 2, five-dot

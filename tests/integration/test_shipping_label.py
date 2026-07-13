@@ -139,7 +139,7 @@ def test_visual_difference_from_labelary_stays_below_baseline() -> None:
         reference = reference_image.convert("L")
 
     assert actual.size == reference.size
-    assert _difference_percentage(actual, reference) < 8.0
+    assert _difference_percentage(actual, reference) < 7.5
 
 
 def test_visual_regions_preserve_barcode_origin_improvement() -> None:
@@ -160,6 +160,7 @@ def test_visual_regions_preserve_barcode_origin_improvement() -> None:
     }
 
     assert max(differences, key=differences.__getitem__) == "routing"
-    assert differences["barcode"] < 1.5
+    assert differences["routing"] < 10.6
+    assert differences["barcode"] < 1.1
     assert differences["routing"] > differences["recipient"]
     assert differences["qr"] < 5.0

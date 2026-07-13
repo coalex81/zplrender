@@ -17,7 +17,7 @@ Status values are `planned`, `partial`, `implemented`, and `verified`.
 | `^PO` | partial | Yes | Normal orientation is accepted; inversion is not implemented |
 | `^FX` | implemented | Yes | Consumed without creating a field |
 | `^LH` | implemented | Yes | Applies label-home offsets to field origins |
-| `^A0` | partial | Yes | Font 0 normal orientation with explicit dimensions |
+| `^A0` | partial | Yes | Registry-backed font 0, normal orientation, independent height/width dimensions |
 | `^FD` | implemented | Yes | Creates decoded text fields |
 | `^FH` | implemented | Yes | Configurable field-local hexadecimal indicator |
 | `^FB` | partial | Yes | Width, line limit, spacing, left/center/right alignment, indent |
