@@ -139,10 +139,10 @@ def test_visual_difference_from_labelary_stays_below_baseline() -> None:
         reference = reference_image.convert("L")
 
     assert actual.size == reference.size
-    assert _difference_percentage(actual, reference) < 13.0
+    assert _difference_percentage(actual, reference) < 8.0
 
 
-def test_visual_regions_identify_barcode_as_largest_gap() -> None:
+def test_visual_regions_preserve_barcode_origin_improvement() -> None:
     actual = render(_shipping_label_source(), strict=True).pages[0].convert("L")
     with Image.open(REFERENCE) as reference_image:
         reference = reference_image.convert("L")
@@ -159,7 +159,7 @@ def test_visual_regions_identify_barcode_as_largest_gap() -> None:
         for name, box in regions.items()
     }
 
-    assert max(differences, key=differences.__getitem__) == "barcode"
-    assert 25.0 < differences["barcode"] < 26.0
+    assert max(differences, key=differences.__getitem__) == "routing"
+    assert differences["barcode"] < 1.5
     assert differences["routing"] > differences["recipient"]
     assert differences["qr"] < 5.0

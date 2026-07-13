@@ -188,11 +188,10 @@ def _draw_box(canvas: Image.Image, element: BoxElement) -> None:
 
 def _draw_code128(canvas: Image.Image, element: Code128Element) -> None:
     modules = encode_code128_modules(element.data)
-    quiet_modules = 10
-    width = (len(modules) + quiet_modules * 2) * element.module_width
+    width = len(modules) * element.module_width
     barcode = Image.new("1", (width, element.height), color=1)
     draw = ImageDraw.Draw(barcode)
-    x = quiet_modules * element.module_width
+    x = 0
     for module in modules:
         if module == "1":
             draw.rectangle(

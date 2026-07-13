@@ -64,6 +64,11 @@ does not complete the broader Phase 1 research checklist.
 
 ## Native legacy label decisions
 
+- Code 128 field origin is the first bar. Required quiet space belongs outside
+  the encoded field and must not shift the barcode right from its `^FO`
+  coordinate. Matching this behavior reduced the sanitized native benchmark
+  from 12.0957% to 7.3394% thresholded pixel difference.
+
 - `^CI28` fields are decoded as UTF-8 after field-local `^FH` byte expansion.
 - Font 0 prefers configurable-system Liberation Sans Narrow Bold, with DejaVu
   Sans Bold and DejaVu Sans fallbacks. Their metrics are intentionally not

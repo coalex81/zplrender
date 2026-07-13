@@ -45,5 +45,7 @@ def test_renders_barcode_pixels() -> None:
 
     page = render_document(document, RenderOptions(width=250, height=180))[0].convert("L")
 
+    assert page.getpixel((9, 10)) == 255
+    assert page.getpixel((10, 10)) == 0
     assert page.crop((10, 10, 200, 50)).histogram()[0] > 0
     assert page.crop((10, 60, 150, 180)).histogram()[0] > 0
