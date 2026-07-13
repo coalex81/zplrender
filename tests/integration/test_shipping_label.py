@@ -28,6 +28,14 @@ def _pixel_is_black(image: Image.Image, position: tuple[int, int]) -> bool:
     return pixel < 128
 
 
+def _difference_percentage(actual: Image.Image, reference: Image.Image) -> float:
+    differing = sum(
+        (actual_pixel < 128) != (reference_pixel < 128)
+        for actual_pixel, reference_pixel in zip(actual.tobytes(), reference.tobytes())
+    )
+    return differing * 100 / (actual.width * actual.height)
+
+
 def test_renders_sanitized_shipping_label() -> None:
     result = render(_shipping_label_source(), strict=True)
 
@@ -131,9 +139,27 @@ def test_visual_difference_from_labelary_stays_below_baseline() -> None:
         reference = reference_image.convert("L")
 
     assert actual.size == reference.size
-    differing = sum(
-        (actual_pixel < 128) != (reference_pixel < 128)
-        for actual_pixel, reference_pixel in zip(actual.tobytes(), reference.tobytes())
-    )
-    difference_percentage = differing * 100 / (actual.width * actual.height)
-    assert difference_percentage < 13.0
+    assert _difference_percentage(actual, reference) < 13.0
+
+
+def test_visual_regions_identify_barcode_as_largest_gap() -> None:
+    actual = render(_shipping_label_source(), strict=True).pages[0].convert("L")
+    with Image.open(REFERENCE) as reference_image:
+        reference = reference_image.convert("L")
+    regions = {
+        "header": (0, 0, 812, 210),
+        "barcode": (0, 210, 812, 450),
+        "routing": (0, 450, 812, 780),
+        "routing_details": (0, 780, 812, 950),
+        "recipient": (0, 950, 650, 1218),
+        "qr": (650, 950, 812, 1218),
+    }
+    differences = {
+        name: _difference_percentage(actual.crop(box), reference.crop(box))
+        for name, box in regions.items()
+    }
+
+    assert max(differences, key=differences.__getitem__) == "barcode"
+    assert 25.0 < differences["barcode"] < 26.0
+    assert differences["routing"] > differences["recipient"]
+    assert differences["qr"] < 5.0

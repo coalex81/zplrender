@@ -9,6 +9,10 @@ Run the offline comparison:
 python benchmarks/compare.py
 ```
 
+The report includes the overall thresholded-pixel difference and ranks header,
+barcode, routing, routing-details, recipient, and QR regions by their share of
+all differing pixels. Region bounds are expressed in 203-DPI label dots.
+
 Regenerate the reference only after intentionally changing the fixture:
 
 ```bash
